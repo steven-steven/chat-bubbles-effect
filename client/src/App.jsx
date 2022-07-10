@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import './App.css'
 import Chat from './chat'
 import Bubble from './bubble'
@@ -9,6 +9,13 @@ import { motion, AnimatePresence } from 'framer-motion'
 function App() {
   const [messages, addMessage] = useMessages([])
   const [newMessage, setNewMessage] = useState('')
+  const [data, setData] = useState(null);
+
+  useEffect(() => {
+    fetch("/api")
+      .then((res) => res.json())
+      .then((data) => setData(data.message));
+  }, []);
 
   const handleSubmit = useCallback(() => {
     if (newMessage.length > 0) {
@@ -19,6 +26,7 @@ function App() {
 
   return (
     <div className="App">
+    <p>{!data ? "Loading..." : data}</p>
       <Chat>
         <AnimatePresence>
           {messages.map(m => (
