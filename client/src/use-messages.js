@@ -12,7 +12,7 @@ const useMessages = (initialValue = []) => {
           n.shift()
           return n
         })
-      }, 15000)
+      }, 10000)
     },
     [setMessages]
   )

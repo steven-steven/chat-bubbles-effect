@@ -27,6 +27,21 @@ const BubbleInput = ({ onChange, onSubmit, value }) => {
 
   useEffect(handleBlur, [handleBlur])
 
+  const moveCursorAfterHashtags = () => {
+    let hashtagRange = document.createRange();
+    let windowSelection = window.getSelection();
+    //remove any previously created ranges
+    windowSelection.removeAllRanges();
+    let theNodes = refEditable.current.childNodes;
+    refEditable.current.focus();
+    hashtagRange.setStartBefore(theNodes[0]);
+    hashtagRange.setEndAfter(theNodes[0]);
+    hashtagRange.collapse(false);
+    //add the range to a window selection object.
+    windowSelection.addRange(hashtagRange);
+    windowSelection.collapseToEnd();
+  }
+
   return (
     <div
       ref={refEditable}
@@ -37,8 +52,9 @@ const BubbleInput = ({ onChange, onSubmit, value }) => {
       spellCheck="false"
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
-      onInput={e => onChange(e.target.innerText)}
-    />
+      onInput={e => {onChange(e.target.innerText); moveCursorAfterHashtags();}}
+      suppressContentEditableWarning={true}
+    >{value}</div>
   )
 }
 

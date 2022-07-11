@@ -10,30 +10,19 @@ import useSocket from './use-socket'
 function App() {
   const [messages, addMessage] = useMessages([])
   const [newMessage, setNewMessage] = useState('')
-  const [data, setData] = useState(null);
   const ws = useSocket();
 
   useEffect(() => {
     if(!ws) return;
 
-    fetch("/api")
-      .then((res) => res.json())
-      .then((data) => setData(data.message));
-
-    ws.onopen = (event) => {
-      ws.send(JSON.stringify({
-        event: "onchange",
-        value: "typing...",
-      }))
-    }
-
     ws.onmessage = (event) => {
       const json = JSON.parse(event.data);
       try {
         if(json.event == "onchange") {
-          console.log("received onchange");
-          // todo: set value.
-          console.log(json.value);
+          setNewMessage(json.value)
+        } else if(json.event == "addMessage"){
+          addMessage(json.value)
+          setNewMessage('')
         }
       } catch (err) {
         console.log(err);
@@ -43,25 +32,34 @@ function App() {
 
   const handleSubmit = useCallback(() => {
     if (newMessage.length > 0) {
+      ws.send(JSON.stringify({
+        event: "addMessage",
+        value: newMessage,
+      }))
       addMessage(newMessage)
       setNewMessage('')
     }
-  }, [newMessage, messages])
+  }, [newMessage])
 
   return (
     <div className="App">
-    <p>{!data ? "Loading..." : data}</p>
       <Chat>
         <AnimatePresence>
-          {messages.map(m => (
-            <Bubble key={m} id={m}>
+          {messages.map((m,i) => (
+            <Bubble key={`${m},${i}`} id={`${m},${i}`}>
               {m}
             </Bubble>
           ))}
         </AnimatePresence>
         <BubbleInput
           value={newMessage}
-          onChange={setNewMessage}
+          onChange={(msg) => {
+            ws.send(JSON.stringify({
+              event: "onchange",
+              value: msg,
+            }))
+            setNewMessage(msg);
+          }}
           onSubmit={handleSubmit}
         />
       </Chat>
